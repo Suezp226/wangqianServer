@@ -13,6 +13,7 @@ let consumerInfo = new Schema({
     phone: String,
     idNumber: String,
     userType: String,
+    roleName: String,  // 工作人员角色中文
     token: String,
     randomNum: String
 });
@@ -34,8 +35,8 @@ router.all('*', function(req, res, next) {
     if (req.url == '/wqLogin') {
         next();
     } else {
-        return
         next();
+        return
         let nowDate = new Date();
         let year = nowDate.getFullYear();
         let month = nowDate.getMonth() * 1 + 1;
@@ -70,10 +71,10 @@ router.get('/', function(req, res, next) {
                 total: docs.length
             }
             let list = [];
-            if (query.keyWord.trim() !== '') {
+            if (query.keyword && query.keyword.trim() !== '') {
                 docs.forEach((ele) => {
-                    let str = ele.name + '' + ele.phone + '';
-                    if (!(str.indexOf(query.keyWord) === -1)) {
+                    let str = ele.name + '' + ele.phone + ''+ ele.idNumber;
+                    if (!(str.indexOf(query.keyword) === -1)) {
                         list.unshift(ele); //倒序
                     }
                 })
@@ -103,10 +104,10 @@ router.get('/exportExcel', function(req, res, next) {
     consumer.find(qq, {}, (err, docs) => { //定义查询结果显示字段
         if (!err) {
             let jsonArray = [];
-            if (query.keyWord.trim() !== '') {
+            if (query.keyword.trim() !== '') {
                 docs.forEach((ele) => {
                     let str = ele.name + '' + ele.phone + '' + ele.comment + '' + ele.principal;
-                    if (!(str.indexOf(query.keyWord) === -1)) {
+                    if (!(str.indexOf(query.keyword) === -1)) {
                         let temp = {
                             '姓名': ele.name,
                             '手机号': ele.phone,
@@ -141,7 +142,7 @@ router.use(express.json())
 router.use(express.urlencoded({ extended: true }))
 
 // 修改用户信息
-router.post('/editInfo', function(req, res, next) {
+router.post('/editUser', function(req, res, next) {
     console.log(req.body);
     let query = req.body;
     consumer.updateOne({ _id: query._id }, {...query }, function(err, resp) {
@@ -157,13 +158,31 @@ router.post('/editInfo', function(req, res, next) {
     })
 })
 
+// 删除用户
+router.post('/deleteUser', function(req, res, next) {
+    console.log(req.body);
+    let query = req.body;
+
+    consumer.remove({ _id: query._id }, function (err, resp) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        consumer.find({ _id: query._id }, {}, (err, docs) => {
+            res.send({ docs, code: 200 })
+            
+            next();
+        })
+    });
+})
+
 // 新增用户信息
-router.post('/addConsumer', function(req, res, next) {
+router.post('/addUser', function(req, res, next) {
     let query = req.body;
     console.log(query.phone);
     consumer.find({ phone: query.phone }, {}, (err, docs) => {
         if (docs.length === 0 || query.phone.trim() == '') {
-            consumer.create([query], (err) => {
+            consumer.create([{...query,token:'',randomNum:''}], (err) => {
                 if (!err) {
                     console.log('添加成功')
                     consumer.find({...query }, {}, (err, docs) => {
