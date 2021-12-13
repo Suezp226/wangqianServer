@@ -27,6 +27,8 @@ let consumerInfo = new Schema({
     location: String,  // 确认位置信息
     deviceInfo: String,  //设备信息
     imei: String,
+    startTime: String,  // 短信通知开始时间
+    endTime: String,    // 短信通知结束时间
 });
 
 

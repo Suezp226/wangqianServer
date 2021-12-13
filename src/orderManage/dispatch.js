@@ -25,6 +25,7 @@ let consumerInfo = new Schema({
     fileList: Array,
     deliveryFeeType: String,  // 运费类型  0 公司运费  需要输入运费金额， 1客户运费 不需要金额
     deliveryFee: String,   // 运费
+    liveName: String,     // 现场人
     livePhone: String,     // 现场联系电话
     mark: String,          // 备注
     makerName: String,
