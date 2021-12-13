@@ -1,4 +1,4 @@
-// 七周年用户信息
+// 用户信息
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router(); // 输出一个路由中间件
@@ -10,12 +10,14 @@ const MD5 = require('md5-node');
 let Schema = mongoose.Schema;
 let consumerInfo = new Schema({
     name: String,
+    password: String,
     phone: String,
     idNumber: String,
     userType: String,
     roleName: String,  // 工作人员角色中文
     token: String,
-    randomNum: String
+    randomNum: String,
+    menuList: String,
 });
 
 // 监控历史操作表
@@ -51,13 +53,15 @@ router.all('*', function(req, res, next) {
     }
 })
 
+
+
 // 查询列表
 router.get('/', function(req, res, next) {
     let query = req.query
         // pages->  page,pageNum,total
         // query-> name phone date keyword
-    let { name, phone } = query;
-    let qq = { name, phone };
+    let { name, phone, userType } = query;
+    let qq = { name, phone, userType };
     for (const key in query) {
         if (query[key].trim() == '') {
             delete qq[key]
@@ -182,7 +186,15 @@ router.post('/addUser', function(req, res, next) {
     console.log(query.phone);
     consumer.find({ phone: query.phone }, {}, (err, docs) => {
         if (docs.length === 0 || query.phone.trim() == '') {
-            consumer.create([{...query,token:'',randomNum:''}], (err) => {
+            
+            let newUser = {...query,token:'',randomNum:''};
+
+            if(['ywy','xsnq'].includes(newUser.userType)) {  // 工作人员 要保存密码
+                newUser.password = '123456';
+                newUser.menuList = JSON.stringify([{"muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页","menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},{"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar","parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar","subs":[{"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单","menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},{"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,"menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},{"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单","menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}]},{"muaId":6,"roleCode":"admin","menuCode":"role","menuUrl":"9","authType":"menu","buttonCode":null,"menuName":"角色管理","menuIcon":"el-icon-lx-people","parentId":"","path":"9","title":"角色管理","icon":"el-icon-lx-people","subs":[{"muaId":7,"roleCode":"admin","menuCode":"customerManage","menuUrl":"/customerManage","authType":"menu","buttonCode":null,"menuName":"客户管理","menuIcon":null,"parentId":"role","path":"/customerManage","title":"客户管理","icon":"","subs":null},{"muaId":8,"roleCode":"admin","menuCode":"workerManage","menuUrl":"/workerManage","authType":"menu","buttonCode":null,"menuName":"员工管理","menuIcon":null,"parentId":"role","path":"/workerManage","title":"员工管理","icon":"","subs":null},{"muaId":24,"roleCode":"admin","menuCode":"driverManage","menuUrl":"/driverManage","authType":"menu","buttonCode":null,"menuName":"司机管理","menuIcon":null,"parentId":"role","path":"/driverManage","title":"司机管理","icon":"","subs":null}]},{"muaId":9,"roleCode":"admin","menuCode":"system","menuUrl":"/i18n","authType":"menu","buttonCode":null,"menuName":"系统设置","menuIcon":"el-icon-lx-global","parentId":"","path":"/i18n","title":"系统设置","icon":"el-icon-lx-global","subs":null}]);
+            }  
+
+            consumer.create([newUser], (err) => {
                 if (!err) {
                     console.log('添加成功')
                     consumer.find({...query }, {}, (err, docs) => {
@@ -199,24 +211,54 @@ router.post('/addUser', function(req, res, next) {
     })
 })
 
-// 登入
-
-// 账号km1234   密码 8888888
-router.post('/wqLogin', function(req, res, next) {
+// web 登录
+router.post('/webLogin', function(req, res, next) {
     let query = req.body;
-    if (query.username === 'km1234' && query.password === MD5('88888888')) {
-        let token = MD5(query.username) + query.password;
-        let nowDate = new Date();
-        let year = nowDate.getFullYear();
-        let month = nowDate.getMonth() * 1 + 1;
-        let day = nowDate.getDate();
-        let kmToken = token + year + month;
-        res.send({ code: 200, token: kmToken })
-    } else {
-        res.send({ code: 403, msg: '用户名或密码错误!' })
-    }
-    next();
+    consumer.find({ name: query.name, phone: query.phone }, {}, (err, docs) => {
+
+        if (docs.length === 0 || query.phone.trim() == '') {
+
+            res.send({ code: 302, message: '该用户不存在' });
+            
+        } else {
+            let person = {...docs[0]._doc};
+
+            // 判断是否有后台权限
+
+            if(!['ywy','xsnq'].includes(person.userType)) {
+                res.send({ code: 302, message: '该用户无后台权限' });
+                return
+            } 
+
+
+
+            // 将token添加进去
+            let token = MD5(person.name + '' + person.phone);
+            person.token = 'WQ ' + token;
+            consumer.updateOne({ _id: person._id }, {...person }, function(err, resp) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                console.log('成功')
+                consumer.find({ _id: person._id }, {}, (err, Redocs) => {
+                    res.send({ 
+                        code: 200,
+                        message: '登录成功',
+                        data: {
+                            user:Redocs[0],
+                            menuList: Redocs[0].menuList
+                        }
+                    })
+                    next();
+                })
+            })
+        }
+    })
 })
+
+// mobile 登录
+
 
 // 定时任务 备份保存文件在本地
 const saveDataLocal = function() {

@@ -3,12 +3,16 @@ const express = require('express')
 const mongoose = require('mongoose');
 const path = require('path')
 const cors = require('cors');
-const app = express()
+const app = express();
+const sms = require('./src/utils/aliMsg');
 const MD5 = require('md5-node');
 
 // 导入路由模块
-const upload = require('./src/upload')
-const user = require('./src/user')
+const upload = require('./src/upload');
+const user = require('./src/user');
+const order = require('./src/orderManage/order');
+const statement = require('./src/orderManage/statement');
+const dispatch = require('./src/orderManage/dispatch');
 
 
 
@@ -37,6 +41,11 @@ app.get('/api', (req, res) => {
 // 上传文件
 app.use('/upload', upload.router);
 app.use('/user',user.router);   // 处理用户
+app.use('/orderForm',order.router);   // 处理订货单
+app.use('/statementForm',statement.router);   // 处理订货单
+app.use('/dispatchForm',dispatch.router);   // 处理发货单
+
+
 
 
 function MathRand() {
@@ -46,6 +55,26 @@ function MathRand() {
     }
     return Num;
 }
+
+// 获取验证码 
+app.get('/getCode',function(req,res,next){
+    let query = req.query;
+    console.log(query,sms.send);
+    let code = MathRand();
+    sms.send(query.phone,'SMS_226825561',{custName:code}).then((result) => {
+        console.log("短信发送成功")
+        console.log(result)
+    }, (ex) => {
+        console.log("短信发送失败")
+        console.log(ex)
+    });
+
+
+    res.send({
+        code: 200,
+        checkCode: code
+    })
+})
 
 // 获取文件列表
 app.use('/getImglist', (req, res) => {
