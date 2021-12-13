@@ -191,7 +191,7 @@ router.post('/addUser', function(req, res, next) {
 
             if(['ywy','xsnq'].includes(newUser.userType)) {  // 工作人员 要保存密码
                 newUser.password = '123456';
-                newUser.menuList = JSON.stringify([{"muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页","menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},{"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar","parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar","subs":[{"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单","menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},{"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,"menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},{"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单","menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}]},{"muaId":6,"roleCode":"admin","menuCode":"role","menuUrl":"9","authType":"menu","buttonCode":null,"menuName":"角色管理","menuIcon":"el-icon-lx-people","parentId":"","path":"9","title":"角色管理","icon":"el-icon-lx-people","subs":[{"muaId":7,"roleCode":"admin","menuCode":"customerManage","menuUrl":"/customerManage","authType":"menu","buttonCode":null,"menuName":"客户管理","menuIcon":null,"parentId":"role","path":"/customerManage","title":"客户管理","icon":"","subs":null},{"muaId":8,"roleCode":"admin","menuCode":"workerManage","menuUrl":"/workerManage","authType":"menu","buttonCode":null,"menuName":"员工管理","menuIcon":null,"parentId":"role","path":"/workerManage","title":"员工管理","icon":"","subs":null},{"muaId":24,"roleCode":"admin","menuCode":"driverManage","menuUrl":"/driverManage","authType":"menu","buttonCode":null,"menuName":"司机管理","menuIcon":null,"parentId":"role","path":"/driverManage","title":"司机管理","icon":"","subs":null}]},{"muaId":9,"roleCode":"admin","menuCode":"system","menuUrl":"/i18n","authType":"menu","buttonCode":null,"menuName":"系统设置","menuIcon":"el-icon-lx-global","parentId":"","path":"/i18n","title":"系统设置","icon":"el-icon-lx-global","subs":null}]);
+                newUser.menuList = JSON.stringify([{"muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页","menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},{"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar","parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar","subs":[{"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单","menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},{"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,"menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},{"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单","menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}]},{"muaId":6,"roleCode":"admin","menuCode":"role","menuUrl":"9","authType":"menu","buttonCode":null,"menuName":"角色管理","menuIcon":"el-icon-lx-people","parentId":"","path":"9","title":"角色管理","icon":"el-icon-lx-people","subs":[{"muaId":7,"roleCode":"admin","menuCode":"customerManage","menuUrl":"/customerManage","authType":"menu","buttonCode":null,"menuName":"用户管理","menuIcon":null,"parentId":"role","path":"/customerManage","title":"用户管理","icon":"","subs":null},{"muaId":8,"roleCode":"admin","menuCode":"workerManage","menuUrl":"/workerManage","authType":"menu","buttonCode":null,"menuName":"员工管理","menuIcon":null,"parentId":"role","path":"/workerManage","title":"员工管理","icon":"","subs":null}]},{"muaId":9,"roleCode":"admin","menuCode":"system","menuUrl":"/i18n","authType":"menu","buttonCode":null,"menuName":"系统设置","menuIcon":"el-icon-lx-global","parentId":"","path":"/i18n","title":"系统设置","icon":"el-icon-lx-global","subs":null}]);
             }  
 
             consumer.create([newUser], (err) => {
@@ -230,8 +230,6 @@ router.post('/webLogin', function(req, res, next) {
                 return
             } 
 
-
-
             // 将token添加进去
             let token = MD5(person.name + '' + person.phone);
             person.token = 'WQ ' + token;
@@ -258,6 +256,48 @@ router.post('/webLogin', function(req, res, next) {
 })
 
 // mobile 登录
+router.post('/mobileLogin', function(req, res, next) {
+    let query = req.body;
+    // 因为 手机号是唯一的 可以用于判断用户
+    consumer.find({ phone: query.phone }, {}, (err, docs) => {
+
+        if (docs.length === 0 || query.phone.trim() == '') {
+            res.send({ code: 302, message: '该用户不存在' });
+        } else {
+            let person = {...docs[0]._doc};
+            if(query.msgCode != person.randomNum) {
+                res.send({ 
+                    code: 401,
+                    msg: '验证码错误'
+                })
+                return
+            }
+
+            // 将token添加进去
+            let token = MD5(person.randomNum + '' + person.phone);
+            person.token = 'WQ ' + token;
+            consumer.updateOne({ _id: person._id }, {...person }, function(err, resp) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                console.log('成功')
+                consumer.find({ _id: person._id }, {}, (err, Redocs) => {
+                    res.send({ 
+                        code: 200,
+                        message: '登录成功',
+                        data: {
+                            user:Redocs[0],
+                            menuList: Redocs[0].menuList,
+                            token: Redocs[0].token
+                        }
+                    })
+                    next();
+                })
+            })
+        }
+    })
+})
 
 
 // 定时任务 备份保存文件在本地

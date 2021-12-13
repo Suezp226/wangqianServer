@@ -5,13 +5,13 @@
  
  const Core = require('@alicloud/pop-core');
   
- // 阿里云控制台 - 短信服务 - 国内消息
- const SignName = "贵州黔峰管业有限公司";
+ // 阿里云控制台 - 短信服务 - 国内消息  签名
+ const SignName = "黔峰公司收货网签确认";
 //  const TemplateCode = "SMS_226825561";
   
  // https://usercenter.console.aliyun.com/
  const accessKeyId = "LTAI5tGLoMGky94EuDVF4CXB";
- const accessKeySecret = "123456";  // 不要上传到git
+ const accessKeySecret = "fEbrPWF6fiG08rmbQEUM7EFvsz8oOo";  // 不要上传到git
   
  var client = new Core({
      accessKeyId,
@@ -21,7 +21,7 @@
  });
   
  exports.send = function(phone,TemplateCode,param) {
-     console.log(phone)
+     console.log(phone,param)
     // 发送短信
      return new Promise((resolve, reject) => {
          try {

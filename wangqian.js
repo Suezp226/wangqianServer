@@ -21,7 +21,7 @@ app.use(cors()); // 解决跨域问题
 // 1、连接数据库
 mongoose.connect('mongodb://localhost/wangqian', { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.connection.once("open", () => {
-    console.log('数据库链接成功，库名：kmdb')
+    console.log('数据库链接成功，库名：wangqian')
 })
 
 // 开放静态资源库
@@ -59,21 +59,47 @@ function MathRand() {
 // 获取验证码 
 app.get('/getCode',function(req,res,next){
     let query = req.query;
-    console.log(query,sms.send);
     let code = MathRand();
-    sms.send(query.phone,'SMS_226825561',{custName:code}).then((result) => {
+    user.consumer.find({ phone: query.phone }, {}, (err, docs) => {
+        if(docs.length == 0) {  // 不存在该用户 创建一个用户角色
+
+            res.send({
+                code: 301,
+                msg: '不存在该用户'
+            })
+            return
+        }
+
+        // 存在用户角色  直接可进行登录
+        let param = docs[0];
+        console.log(param);
+        param.randomNum = code;
+        console.log(param);
+        user.consumer.updateOne({ _id: param._id }, param , function(err, resp) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            console.log('成功', resp)
+        })
+    })
+    sms.send(query.phone,'SMS_227910364',{code:code}).then((result) => {
         console.log("短信发送成功")
         console.log(result)
+        res.send({
+            code: 200,
+            checkCode: code,
+            msg: '发送成功',
+        })
     }, (ex) => {
         console.log("短信发送失败")
         console.log(ex)
+        res.send({
+            code: 300,
+            checkCode: code,
+            msg: '发送失败',
+        })
     });
-
-
-    res.send({
-        code: 200,
-        checkCode: code
-    })
 })
 
 // 获取文件列表

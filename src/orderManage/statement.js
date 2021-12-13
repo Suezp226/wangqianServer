@@ -5,6 +5,7 @@ const router = express.Router(); // 输出一个路由中间件
 const fs = require('fs');
 const json2xls = require('json2xls'); //生成excel
 const MD5 = require('md5-node');
+const sms = require("../utils/aliMsg");
 
 // 2、创建 schema
 let Schema = mongoose.Schema;
@@ -27,8 +28,7 @@ let consumerInfo = new Schema({
     location: String,  // 确认位置信息
     deviceInfo: String,  //设备信息
     imei: String,
-    startTime: String,  // 短信通知开始时间
-    endTime: String,    // 短信通知结束时间
+    timePeriod: String,  // 短信通知往来时间
 });
 
 
@@ -155,18 +155,34 @@ router.post('/editOrder', function(req, res, next) {
     console.log(req.body);
     let query = req.body;
 
-    if(query.orderStat == '9') {
-        console.log('作废')
-    }
-
-    if(query.orderStat == '1') {
-        console.log('确认订单')
-    }
-
     consumer.updateOne({ _id: query._id }, {...query }, function(err, resp) {
         if (err) {
             console.log(err);
             return;
+        }
+        if(query.orderStat == '9') {
+            console.log('作废')
+        }
+    
+        if(query.orderStat == '1') {
+            console.log('确认订单')
+            let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone} = query;
+            // 发送给 对账人
+            sms.send(query.checkPhone,'SMS_229613384',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            // 发送给 业务员
+            sms.send(query.ywyPhone,'SMS_229643202',{company,timePeriod,checkName,checkPhone}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
         }
         console.log('成功', resp)
         consumer.find({ _id: query._id }, {}, (err, docs) => {
@@ -206,6 +222,23 @@ router.post('/addOrder', function(req, res, next) {
             consumer.create([newOrder], (err) => {
                 if (!err) {
                     console.log('添加成功')
+                    let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone} = query;
+                    // 发送给 对账人
+                    sms.send(query.checkPhone,'SMS_229638319',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
+                        console.log("短信发送成功")
+                        console.log(result)
+                    }, (ex) => {
+                        console.log("短信发送失败")
+                        console.log(ex)
+                    });
+                    // 发送给 业务员
+                    sms.send(query.ywyPhone,'SMS_229648309',{company,timePeriod,finaceName,finacePhone,checkName,checkPhone}).then((result) => {
+                        console.log("短信发送成功")
+                        console.log(result)
+                    }, (ex) => {
+                        console.log("短信发送失败")
+                        console.log(ex)
+                    });
                     consumer.find({...query }, {}, (err, docs) => {
                         res.send({ docs, code: 200 })
                         return

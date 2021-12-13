@@ -5,6 +5,7 @@ const router = express.Router(); // 输出一个路由中间件
 const fs = require('fs');
 const json2xls = require('json2xls'); //生成excel
 const MD5 = require('md5-node');
+const sms = require("../utils/aliMsg");
 
 // 2、创建 schema
 let Schema = mongoose.Schema;
@@ -38,7 +39,7 @@ let consumerInfo = new Schema({
     changeIdNum: String,
     signType: String,       // 0 无异议  1有异议
     problem: String,    // 异议
-    orderStat: String,  // 订单状态
+    orderStat: String,  // 订单状态 0-待启运  1-运输中  2-无异议签收   3-有异议签收   4-二次签收(无异议)  9-作废
     // 启运设备
     Blocation: String,  // 确认位置信息
     BdeviceInfo: String,  //设备信息
@@ -173,19 +174,123 @@ router.post('/editOrder', function(req, res, next) {
     console.log(req.body);
     let query = req.body;
 
-    if(query.orderStat == '9') {
-        console.log('作废')
-    }
-
-    if(query.orderStat == '1') {
-        console.log('确认订单')
-    }
-
     consumer.updateOne({ _id: query._id }, {...query }, function(err, resp) {
         if (err) {
             console.log(err);
             return;
         }
+
+        // 订单状态 0-待启运  1-运输中  2-无异议签收   3-有异议签收   4-二次签收(无异议)  9-作废
+        let {} = query;
+        // 要判断下是否有变更收货人
+        if(query.orderStat == '1') {  // 启运操作  通知 结算人、司机、业务员
+            // 发送给 司机
+            sms.send(query.deliveryPhone,'SMS_229648220',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            // 发送给 结算人（本人）
+            sms.send(query.payPhone,'SMS_229643238',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            // 发送给 业务员
+            sms.send(query.ywyPhone,'SMS_229643215',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+        }
+    
+        if(query.orderStat == '2' || query.orderStat == '4') {  // 签收操作 无异议   通知结算人、司机、业务员、内勤
+            // 发送给 结算人（本人）
+            sms.send(query.payPhone,'SMS_229613403',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+
+            // 发送给 司机
+            sms.send(query.deliveryPhone,'SMS_229638303',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            // 发送给 销售内勤
+            sms.send(query.makerPhone,'SMS_229638303',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            // 发送给 业务员
+            sms.send(query.ywyPhone,'SMS_229638303',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            console.log('确认订单')
+        }
+
+        if(query.orderStat == '3') {  // 签收操作 有异议
+            // 发送给 结算人（本人）
+            sms.send(query.payPhone,'SMS_229643228',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            // 发送给 司机
+            sms.send(query.deliveryPhone,'SMS_229638303',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            
+            // 发送给 销售内勤
+            sms.send(query.makerPhone,'SMS_229638303',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            // 发送给 业务员
+            sms.send(query.ywyPhone,'SMS_229638303',{}).then((result) => {
+                console.log("短信发送成功")
+                console.log(result)
+            }, (ex) => {
+                console.log("短信发送失败")
+                console.log(ex)
+            });
+            console.log('确认订单')
+        }
+
+        if(query.orderStat == '4') {  // 签收操作 二次签收
+            console.log('二次确认订单')
+        }
+
+
+
+
         console.log('成功', resp)
         consumer.find({ _id: query._id }, {}, (err, docs) => {
             res.send({ docs, code: 200 })
@@ -224,6 +329,15 @@ router.post('/addOrder', function(req, res, next) {
             consumer.create([newOrder], (err) => {
                 if (!err) {
                     console.log('添加成功')
+                    // let {company,ywyName,ywyPhone} = query;
+                    // // 发送给 司机
+                    // sms.send(query.checkPhone,'SMS_229638319',{company,ywyName,ywyPhone}).then((result) => {
+                    //     console.log("短信发送成功")
+                    //     console.log(result)
+                    // }, (ex) => {
+                    //     console.log("短信发送失败")
+                    //     console.log(ex)
+                    // });
                     consumer.find({...query }, {}, (err, docs) => {
                         res.send({ docs, code: 200 })
                         return
