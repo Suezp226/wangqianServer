@@ -6,6 +6,7 @@ const cors = require('cors');
 const app = express();
 const sms = require('./src/utils/aliMsg');
 const MD5 = require('md5-node');
+const moment = require("moment");
 
 // 导入路由模块
 const upload = require('./src/upload');
@@ -91,23 +92,23 @@ app.get('/getCode',function(req,res,next){
         msg: '发送成功',
     })
 
-    // sms.send(query.phone,'SMS_227910364',{code:code}).then((result) => {
-    //     console.log("短信发送成功")
-    //     console.log(result)
-    //     res.send({
-    //         code: 200,
-    //         checkCode: code,
-    //         msg: '发送成功',
-    //     })
-    // }, (ex) => {
-    //     console.log("短信发送失败")
-    //     console.log(ex)
-    //     res.send({
-    //         code: 300,
-    //         checkCode: code,
-    //         msg: '发送失败',
-    //     })
-    // });
+    sms.send(query.phone,'SMS_227910364',{code:code}).then((result) => {
+        console.log("短信发送成功")
+        console.log(result)
+        res.send({
+            code: 200,
+            checkCode: code,
+            msg: '发送成功',
+        })
+    }, (ex) => {
+        console.log("短信发送失败")
+        console.log(ex)
+        res.send({
+            code: 300,
+            checkCode: code,
+            msg: '发送失败',
+        })
+    });
 })
 
 // 获取文件列表

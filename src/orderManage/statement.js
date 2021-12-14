@@ -228,22 +228,22 @@ router.post('/addOrder', function(req, res, next) {
                 if (!err) {
                     console.log('添加成功')
                     let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone} = query;
-                    // // 发送给 对账人
-                    // sms.send(query.checkPhone,'SMS_230010501',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
-                    //     console.log("短信发送成功")
-                    //     console.log(result)
-                    // }, (ex) => {
-                    //     console.log("短信发送失败")
-                    //     console.log(ex)
-                    // });
-                    // // 发送给 业务员
-                    // sms.send(query.ywyPhone,'SMS_229648309',{company,timePeriod,finaceName,finacePhone,checkName,checkPhone}).then((result) => {
-                    //     console.log("短信发送成功")
-                    //     console.log(result)
-                    // }, (ex) => {
-                    //     console.log("短信发送失败")
-                    //     console.log(ex)
-                    // });
+                    // 发送给 对账人
+                    sms.send(query.checkPhone,'SMS_230010501',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
+                        console.log("短信发送成功")
+                        console.log(result)
+                    }, (ex) => {
+                        console.log("短信发送失败")
+                        console.log(ex)
+                    });
+                    // 发送给 业务员
+                    sms.send(query.ywyPhone,'SMS_229648309',{company,timePeriod,finaceName,finacePhone,checkName,checkPhone}).then((result) => {
+                        console.log("短信发送成功")
+                        console.log(result)
+                    }, (ex) => {
+                        console.log("短信发送失败")
+                        console.log(ex)
+                    });
                     consumer.find({...query }, {}, (err, docs) => {
                         res.send({ docs, code: 200 })
                         return
