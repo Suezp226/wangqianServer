@@ -193,7 +193,7 @@ router.post('/editOrder', function(req, res, next) {
                 console.log(ex)
             });
             // 发送给 结算人（本人）
-            sms.send(query.payPhone,'SMS_229643238',{}).then((result) => {
+            sms.send(query.payPhone,'SMS_230010502',{}).then((result) => {
                 console.log("短信发送成功")
                 console.log(result)
             }, (ex) => {
@@ -324,20 +324,22 @@ router.post('/addOrder', function(req, res, next) {
     consumer.find({ orderNo: query.orderNo }, {}, (err, docs) => {
         if (docs.length === 0 || query.phone.trim() == '') {
             
-            let newOrder = {...query,token:'',randomNum:''};
+            let newOrder = {...query,token:''};
+            newOrder.makeTime = new Date().valueOf() + '';
 
             consumer.create([newOrder], (err) => {
                 if (!err) {
                     console.log('添加成功')
-                    // let {company,ywyName,ywyPhone} = query;
-                    // // 发送给 司机
-                    // sms.send(query.checkPhone,'SMS_229638319',{company,ywyName,ywyPhone}).then((result) => {
-                    //     console.log("短信发送成功")
-                    //     console.log(result)
-                    // }, (ex) => {
-                    //     console.log("短信发送失败")
-                    //     console.log(ex)
-                    // });
+
+                    let {company,ywyName,ywyPhone} = query;
+                    // 发送给 司机
+                    sms.send(query.checkPhone,'SMS_230010510',{company,ywyName,ywyPhone}).then((result) => {
+                        console.log("短信发送成功")
+                        console.log(result)
+                    }, (ex) => {
+                        console.log("短信发送失败")
+                        console.log(ex)
+                    });
                     consumer.find({...query }, {}, (err, docs) => {
                         res.send({ docs, code: 200 })
                         return

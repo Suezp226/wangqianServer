@@ -149,9 +149,14 @@ router.use(express.urlencoded({ extended: true }))
 // 修改用户信息
 router.post('/editOrder', function(req, res, next) {
     console.log(req.body);
+
     let query = req.body;
 
-    consumer.updateOne({ _id: query._id }, {...query }, function(err, resp) {
+    if(query.orderStat == '1') {  // 记录确认时间
+        query.confirmTime = new Date().valueOf() + '';
+    }
+
+    consumer.updateOne({ _id: query._id }, {...query,confirmTime: new Date().valueOf() + '' }, function(err, resp) {
         if (err) {
             console.log(err);
             return;
@@ -221,27 +226,28 @@ router.post('/addOrder', function(req, res, next) {
     consumer.find({ orderNo: query.orderNo }, {}, (err, docs) => {
         if (docs.length === 0 || query.phone.trim() == '') {
             
-            let newOrder = {...query,token:'',randomNum:''};
-
+            let newOrder = {...query,token:''};
+            newOrder.makeTime = new Date().valueOf() + '';
+            console.log(newOrder,'新增参数')
             consumer.create([newOrder], (err) => {
                 if (!err) {
                     let {company,orderNo} = query;
                     // 发送给 订货人
-                    sms.send(query.bookPhone,'SMS_229643237',{company,orderNo}).then((result) => {
-                        console.log("短信发送成功")
-                        console.log(result)
-                    }, (ex) => {
-                        console.log("短信发送失败")
-                        console.log(ex)
-                    });
-                    // 发送给业务员
-                    sms.send(query.ywyPhone,'SMS_229643237',{company,orderNo}).then((result) => {
-                        console.log("短信发送成功")
-                        console.log(result)
-                    }, (ex) => {
-                        console.log("短信发送失败")
-                        console.log(ex)
-                    });
+                    // sms.send(query.bookPhone,'SMS_230010505',{company,orderNo}).then((result) => {
+                    //     console.log("短信发送成功")
+                    //     console.log(result)
+                    // }, (ex) => {
+                    //     console.log("短信发送失败")
+                    //     console.log(ex)
+                    // });
+                    // // 发送给业务员
+                    // sms.send(query.ywyPhone,'SMS_229643237',{company,orderNo}).then((result) => {
+                    //     console.log("短信发送成功")
+                    //     console.log(result)
+                    // }, (ex) => {
+                    //     console.log("短信发送失败")
+                    //     console.log(ex)
+                    // });
                     consumer.find({...query }, {}, (err, docs) => {
                         res.send({ docs, code: 200 })
                         return

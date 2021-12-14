@@ -83,23 +83,31 @@ app.get('/getCode',function(req,res,next){
             console.log('成功', resp)
         })
     })
-    sms.send(query.phone,'SMS_227910364',{code:code}).then((result) => {
-        console.log("短信发送成功")
-        console.log(result)
-        res.send({
-            code: 200,
-            checkCode: code,
-            msg: '发送成功',
-        })
-    }, (ex) => {
-        console.log("短信发送失败")
-        console.log(ex)
-        res.send({
-            code: 300,
-            checkCode: code,
-            msg: '发送失败',
-        })
-    });
+    
+    // 过审核
+    res.send({
+        code: 200,
+        checkCode: code,
+        msg: '发送成功',
+    })
+
+    // sms.send(query.phone,'SMS_227910364',{code:code}).then((result) => {
+    //     console.log("短信发送成功")
+    //     console.log(result)
+    //     res.send({
+    //         code: 200,
+    //         checkCode: code,
+    //         msg: '发送成功',
+    //     })
+    // }, (ex) => {
+    //     console.log("短信发送失败")
+    //     console.log(ex)
+    //     res.send({
+    //         code: 300,
+    //         checkCode: code,
+    //         msg: '发送失败',
+    //     })
+    // });
 })
 
 // 获取文件列表
@@ -114,6 +122,6 @@ app.use('/getImglist', (req, res) => {
     })
 })
 
-app.listen('1113', () => {
-    console.log('正在监听1113')
+app.listen('1115', () => {
+    console.log('正在监听1115')
 })

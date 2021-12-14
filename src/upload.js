@@ -54,7 +54,7 @@ let fileInfo = {};
 //  这里   files   是前端formdata append的文件名
 router.post('/', upload.array('files', 8), function(req, res, next) {
     var files = req.files;
-    // console.log(req.files, '上传的图片')
+    console.log(req.files, '上传的图片')
     let params = []
     files.forEach((ele, index) => {
         params.push({
