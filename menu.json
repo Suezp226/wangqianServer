@@ -1,0 +1,15 @@
+[{
+    "muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页",
+    "menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},
+    {"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar",
+        "parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar",
+        "subs":[
+            {"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单",
+                "menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},
+            {"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,
+                "menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},
+            {"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单",
+                "menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}
+            ]
+    }
+]

@@ -9,6 +9,7 @@ const MD5 = require('md5-node');
 // 2、创建 schema
 let Schema = mongoose.Schema;
 let consumerInfo = new Schema({
+    company: String,  //客户单位
     name: String,
     password: String,
     phone: String,
@@ -18,6 +19,7 @@ let consumerInfo = new Schema({
     token: String,
     randomNum: String,
     menuList: String,
+    mark: String,  // 备注
 });
 
 // 监控历史操作表
@@ -55,7 +57,7 @@ router.all('*', function(req, res, next) {
 
 
 
-// 查询列表
+// 查询列表 员工
 router.get('/', function(req, res, next) {
     let query = req.query
         // pages->  page,pageNum,total
@@ -74,9 +76,71 @@ router.get('/', function(req, res, next) {
                 pageNum: query.pageNum,
                 total: docs.length
             }
+            let list2 = [];
+
+            docs.forEach((ele) => {
+                let str = ele.userType;
+                let arr = ['ywy','xsnq','cw'];
+                if(str && arr.includes(str)) {  // 处理员工
+                    list2.push(ele)
+                }
+            })
+
+            let list = [];
+
+            if (query.keyword && query.keyword.trim() !== '') {  // 关键字
+                list2.forEach((ele) => {
+                    let str = ele.name + '' + ele.phone + ''+ ele.idNumber;
+                    if (!(str.indexOf(query.keyword) === -1)) {
+                        list.unshift(ele); //倒序
+                    }
+                })
+                pages.total = list.length;
+            } else{
+                list = list2.reverse();
+            }
+
+            list = list.splice((query.page - 1) * query.pageNum, query.pageNum);
+            res.send({ list, pages })
+            next();
+        } else {
+            throw err
+        }
+    })
+});
+
+
+// 查询列表 用户
+router.get('/consumer', function(req, res, next) {
+    let query = req.query
+        // pages->  page,pageNum,total
+        // query-> name phone date keyword
+    let { name, phone, userType } = query;
+    let qq = { name, phone, userType };
+    for (const key in query) {
+        if (query[key].trim() == '') {
+            delete qq[key]
+        }
+    }
+    consumer.find(qq, {}, (err, docs) => { //定义查询结果显示字段
+        if (!err) {
+            let pages = {
+                page: query.page,
+                pageNum: query.pageNum,
+                total: docs.length
+            }
+            let list2 = [];
+
+            docs.forEach((ele) => {
+                let str = ele.userType;
+                if(!str) {  // 处理普通用户
+                    list2.push(ele)
+                }
+            })
+
             let list = [];
             if (query.keyword && query.keyword.trim() !== '') {
-                docs.forEach((ele) => {
+                list2.forEach((ele) => {
                     let str = ele.name + '' + ele.phone + ''+ ele.idNumber;
                     if (!(str.indexOf(query.keyword) === -1)) {
                         list.unshift(ele); //倒序
@@ -84,7 +148,7 @@ router.get('/', function(req, res, next) {
                 })
                 pages.total = list.length;
             } else {
-                list = docs.reverse();
+                list = list2.reverse();
             }
             list = list.splice((query.page - 1) * query.pageNum, query.pageNum);
             res.send({ list, pages })
@@ -189,10 +253,28 @@ router.post('/addUser', function(req, res, next) {
             
             let newUser = {...query,token:'',randomNum:''};
 
-            if(['ywy','xsnq'].includes(newUser.userType)) {  // 工作人员 要保存密码
+            if(['xsnq','cw'].includes(newUser.userType)) {  // 工作人员 要保存密码
                 newUser.password = '123456';
                 newUser.menuList = JSON.stringify([{"muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页","menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},{"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar","parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar","subs":[{"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单","menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},{"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,"menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},{"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单","menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}]},{"muaId":6,"roleCode":"admin","menuCode":"role","menuUrl":"9","authType":"menu","buttonCode":null,"menuName":"角色管理","menuIcon":"el-icon-lx-people","parentId":"","path":"9","title":"角色管理","icon":"el-icon-lx-people","subs":[{"muaId":7,"roleCode":"admin","menuCode":"customerManage","menuUrl":"/customerManage","authType":"menu","buttonCode":null,"menuName":"用户管理","menuIcon":null,"parentId":"role","path":"/customerManage","title":"用户管理","icon":"","subs":null},{"muaId":8,"roleCode":"admin","menuCode":"workerManage","menuUrl":"/workerManage","authType":"menu","buttonCode":null,"menuName":"员工管理","menuIcon":null,"parentId":"role","path":"/workerManage","title":"员工管理","icon":"","subs":null}]},{"muaId":9,"roleCode":"admin","menuCode":"system","menuUrl":"/i18n","authType":"menu","buttonCode":null,"menuName":"系统设置","menuIcon":"el-icon-lx-global","parentId":"","path":"/i18n","title":"系统设置","icon":"el-icon-lx-global","subs":null}]);
             }  
+            if(['ywy'].includes(newUser.userType)) {
+                newUser.password = '123456';
+                newUser.menuList = JSON.stringify([{
+                    "muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页",
+                    "menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},
+                    {"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar",
+                        "parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar",
+                        "subs":[
+                            {"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单",
+                                "menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},
+                            {"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,
+                                "menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},
+                            {"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单",
+                                "menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}
+                            ]
+                    }
+                ])
+            }
 
             consumer.create([newUser], (err) => {
                 if (!err) {
@@ -218,14 +300,14 @@ router.post('/webLogin', function(req, res, next) {
 
         if (docs.length === 0 || query.phone.trim() == '') {
 
-            res.send({ code: 302, message: '该用户不存在' });
+            res.send({ code: 302, message: '姓名或验证码错误' });
             
         } else {
             let person = {...docs[0]._doc};
 
             // 判断是否有后台权限
 
-            if(!['ywy','xsnq'].includes(person.userType)) {
+            if(!['ywy','xsnq','cw'].includes(person.userType)) {
                 res.send({ code: 302, message: '该用户无后台权限' });
                 return
             } 
@@ -262,7 +344,10 @@ router.post('/mobileLogin', function(req, res, next) {
     consumer.find({ phone: query.phone }, {}, (err, docs) => {
 
         if (docs.length === 0 || query.phone.trim() == '') {
+
             res.send({ code: 302, message: '该用户不存在' });
+
+
         } else {
             let person = {...docs[0]._doc};
             if(query.msgCode != person.randomNum) {
@@ -292,7 +377,6 @@ router.post('/mobileLogin', function(req, res, next) {
                             token: Redocs[0].token
                         }
                     })
-                    next();
                 })
             })
         }

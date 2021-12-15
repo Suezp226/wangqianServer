@@ -6,6 +6,8 @@ const fs = require('fs');
 const json2xls = require('json2xls'); //生成excel
 const MD5 = require('md5-node');
 const sms = require("../utils/aliMsg");
+const moment = require("moment");
+const user = require('../user');  // 用户list 用来判别新增用户
 
 // 2、创建 schema
 let Schema = mongoose.Schema;
@@ -65,6 +67,8 @@ router.get('/', function(req, res, next) {
         // query-> name phone date keyword
     let { orderStat, keyword, orderNo } = query;
     let qq = { orderStat, keyword, orderNo};
+    qq.ywyName = query.ywyName?query.ywyName:'';
+    qq.makerName = query.makerName?query.makerName:'';
     for (const key in query) {
         if (query[key].trim() == '') {
             delete qq[key]
@@ -156,7 +160,7 @@ router.post('/editOrder', function(req, res, next) {
     let query = req.body;
 
     if(query.orderStat == '1') {  // 记录确认时间
-        query.confirmTime = new Date().valueOf() + '';
+        query.confirmTime = moment().format('YYYY年MM月DD日 HH:mm');
     }
 
     consumer.updateOne({ _id: query._id }, {...query }, function(err, resp) {
@@ -201,7 +205,7 @@ router.post('/deleteOrder', function(req, res, next) {
     console.log(req.body);
     let query = req.body;
 
-    consumer.remove({ _id: query._id }, function (err, resp) {
+    consumer.deleteOne({ _id: query._id }, function (err, resp) {
         if (err) {
             console.log(err);
             return;
@@ -214,6 +218,89 @@ router.post('/deleteOrder', function(req, res, next) {
     });
 })
 
+
+function judgeUser(userType,name,phone,id,company) {
+    user.consumer.find({ phone: phone }, {}, (err, docs) => {
+        if(docs.length == 0) {  // 不存在该用户 创建一个用户角色
+
+            let roleName = '';
+            if(userType=='ywy') {
+                roleName = '业务员'
+            }
+            if(userType=='xsnq') {
+                roleName = '销售内勤'
+            }
+            if(userType=='cw') {
+                roleName = '财务'
+            }
+
+            // 不存在用户 走新增 没有姓名
+            let newUser = {
+                company: company,  //客户单位
+                name: name,
+                password: '',
+                phone: phone,
+                idNumber: id,
+                userType: userType,
+                roleName: roleName,  // 工作人员角色中文
+                token: '',
+                randomNum: '',
+                menuList: '',
+                mark: '',
+            }
+
+            if(['xsnq','cw'].includes(newUser.userType)) {  // 工作人员 要保存密码
+                newUser.password = '123456';
+                newUser.menuList = JSON.stringify([{"muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页","menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},{"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar","parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar","subs":[{"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单","menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},{"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,"menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},{"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单","menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}]},{"muaId":6,"roleCode":"admin","menuCode":"role","menuUrl":"9","authType":"menu","buttonCode":null,"menuName":"角色管理","menuIcon":"el-icon-lx-people","parentId":"","path":"9","title":"角色管理","icon":"el-icon-lx-people","subs":[{"muaId":7,"roleCode":"admin","menuCode":"customerManage","menuUrl":"/customerManage","authType":"menu","buttonCode":null,"menuName":"用户管理","menuIcon":null,"parentId":"role","path":"/customerManage","title":"用户管理","icon":"","subs":null},{"muaId":8,"roleCode":"admin","menuCode":"workerManage","menuUrl":"/workerManage","authType":"menu","buttonCode":null,"menuName":"员工管理","menuIcon":null,"parentId":"role","path":"/workerManage","title":"员工管理","icon":"","subs":null}]},{"muaId":9,"roleCode":"admin","menuCode":"system","menuUrl":"/i18n","authType":"menu","buttonCode":null,"menuName":"系统设置","menuIcon":"el-icon-lx-global","parentId":"","path":"/i18n","title":"系统设置","icon":"el-icon-lx-global","subs":null}]);
+            }  
+            if(['ywy'].includes(newUser.userType)) {
+                newUser.menuList = JSON.stringify([{
+                    "muaId":1,"roleCode":"admin","menuCode":"home","menuUrl":"/dashboard","authType":"menu","buttonCode":null,"menuName":"系统首页",
+                    "menuIcon":"el-icon-lx-home","parentId":"","path":"/dashboard","title":"系统首页","icon":"el-icon-lx-home","subs":null},
+                    {"muaId":2,"roleCode":"admin","menuCode":"order","menuUrl":"8","authType":"menu","buttonCode":null,"menuName":"订单管理","menuIcon":"el-icon-lx-calendar",
+                        "parentId":"","path":"8","title":"订单管理","icon":"el-icon-lx-calendar",
+                        "subs":[
+                            {"muaId":3,"roleCode":"admin","menuCode":"orderForm","menuUrl":"/orderForm","authType":"menu","buttonCode":null,"menuName":"订货单",
+                                "menuIcon":null,"parentId":"order","path":"/orderForm","title":"订货单","icon":"","subs":null},
+                            {"muaId":4,"roleCode":"admin","menuCode":"dispatchForm","menuUrl":"/dispatchForm","authType":"menu","buttonCode":null,
+                                "menuName":"发货单","menuIcon":null,"parentId":"order","path":"/dispatchForm","title":"发货单","icon":"","subs":null},
+                            {"muaId":5,"roleCode":"admin","menuCode":"statementForm","menuUrl":"/statementForm","authType":"menu","buttonCode":null,"menuName":"对账单",
+                                "menuIcon":null,"parentId":"order","path":"/statementForm","title":"对账单","icon":"","subs":null}
+                            ]
+                    }
+                ])
+            }
+
+            user.consumer.create([newUser], (err) => {
+                if (!err) {
+                    console.log('添加成功',newUser)
+                } else {
+                    throw err;
+                }
+            })
+
+            return
+        }
+
+        // 存在用户角色 更新用户信息
+        let param = docs[0];
+        param.name = name;
+        param.idNumber = id;
+        if(company) {
+            param.company = company;
+        }
+        user.consumer.updateOne({ _id: param._id }, param , function(err, resp) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            console.log('成功', resp)
+        })
+    })
+}
+
+
+
 // 新增订单
 router.post('/addOrder', function(req, res, next) {
     let query = req.body;
@@ -222,12 +309,20 @@ router.post('/addOrder', function(req, res, next) {
         if (docs.length === 0 || query.phone.trim() == '') {
             
             let newOrder = {...query,token:''};
-            newOrder.makeTime = new Date().valueOf() + '';
+            newOrder.makeTime = moment().format('YYYY年MM月DD日 HH:mm');
 
             consumer.create([newOrder], (err) => {
                 if (!err) {
                     console.log('添加成功')
-                    let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone} = query;
+                    let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone,checkIdNum} = query;
+
+
+                    // 用户信息判断
+                    judgeUser('ywy',ywyName,ywyPhone,'','');
+                    judgeUser('cw',finaceName,finacePhone,'','');
+                    judgeUser('',checkName,checkPhone,checkIdNum,company);
+
+
                     // 发送给 对账人
                     sms.send(query.checkPhone,'SMS_230010501',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
                         console.log("短信发送成功")

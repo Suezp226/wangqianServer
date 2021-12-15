@@ -11,7 +11,8 @@
   
  // https://usercenter.console.aliyun.com/
  const accessKeyId = "LTAI5tGLoMGky94EuDVF4CXB";
- const accessKeySecret = "fEbrP2138oOo";  // 不要上传到git
+ const accessKeySecret = "fEbrPWF6fiG08rm";  // 不要上传到git
+//  bQEUM7EFvsz8oOo
   
  var client = new Core({
      accessKeyId,
