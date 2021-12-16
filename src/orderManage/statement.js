@@ -176,7 +176,7 @@ router.post('/editOrder', function(req, res, next) {
             console.log('确认对账单')
             let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone} = query;
             // 发送给 对账人
-            sms.send(query.checkPhone,'SMS_229613384',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
+            sms.send(query.checkPhone,'SMS_230675129',{company,timePeriod,finaceName,checkName,finacePhone,ywyName,ywyPhone}).then((result) => {
                 console.log("短信发送成功")
                 console.log(result)
             }, (ex) => {
