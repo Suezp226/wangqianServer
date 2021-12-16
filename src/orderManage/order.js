@@ -162,7 +162,7 @@ router.post('/editOrder', function(req, res, next) {
         query.confirmTime = moment().format('YYYY年MM月DD日 HH:mm');
     }
 
-    consumer.updateOne({ _id: query._id }, {...query,confirmTime: new Date().valueOf() + '' }, function(err, resp) {
+    consumer.updateOne({ _id: query._id }, {...query }, function(err, resp) {
         if (err) {
             console.log(err);
             return;
