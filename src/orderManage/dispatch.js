@@ -219,6 +219,7 @@ router.post('/editOrder', function(req, res, next) {
                         password: '',
                         phone: changePhone,
                         idNumber: changeIdNum,
+                        carNum: carNum,
                         userType: '',
                         roleName: '',  // 工作人员角色中文
                         token: '',
@@ -426,7 +427,7 @@ router.post('/deleteOrder', function(req, res, next) {
 })
 
 
-function judgeUser(userType,name,phone,id,company) {
+function judgeUser(userType,name,phone,id,company,carNum) {
     user.consumer.find({ phone: phone }, {}, (err, docs) => {
         if(docs.length == 0) {  // 不存在该用户 创建一个用户角色
 
@@ -448,6 +449,7 @@ function judgeUser(userType,name,phone,id,company) {
                 password: '',
                 phone: phone,
                 idNumber: id,
+                carNum: carNum,
                 userType: userType,
                 roleName: roleName,  // 工作人员角色中文
                 token: '',
@@ -493,6 +495,9 @@ function judgeUser(userType,name,phone,id,company) {
         let param = docs[0];
         param.name = name;
         param.idNumber = id;
+        if(carNum) {
+            param.carNum = carNum;
+        }
         if(company) {
             param.company = company;
         }
@@ -523,9 +528,9 @@ router.post('/addOrder', function(req, res, next) {
 
                     let {carNum,company,payName,payPhone,payIdNum,ywyName,ywyPhone,orderNo,deliveryName,deliveryPhone} = query;
 
-                    judgeUser('ywy',ywyName,ywyPhone,'','');  // 业务员
-                    judgeUser('',payName,payPhone,payIdNum,company); // 结算人
-                    judgeUser('',deliveryName,deliveryPhone,'','');   // 司机 送货人
+                    judgeUser('ywy',ywyName,ywyPhone,'','','');  // 业务员
+                    judgeUser('',payName,payPhone,payIdNum,company,''); // 结算人
+                    judgeUser('',deliveryName,deliveryPhone,'','',carNum);   // 司机 送货人
 
 
                     let smsParam = {

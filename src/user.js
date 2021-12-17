@@ -20,6 +20,7 @@ let consumerInfo = new Schema({
     randomNum: String,
     menuList: String,
     mark: String,  // 备注
+    carNum: String,  // 司机车牌号
 });
 
 // 监控历史操作表
@@ -252,6 +253,7 @@ router.post('/addUser', function(req, res, next) {
         if (docs.length === 0 || query.phone.trim() == '') {
             
             let newUser = {...query,token:'',randomNum:''};
+            newUser.carNum = newUser.carNum?newUser.carNum:'';
 
             if(['xsnq','cw'].includes(newUser.userType)) {  // 工作人员 要保存密码
                 newUser.password = '123456';
