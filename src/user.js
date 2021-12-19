@@ -161,49 +161,49 @@ router.get('/consumer', function(req, res, next) {
 });
 
 // 导出excel
-router.get('/exportExcel', function(req, res, next) {
-    let query = req.query
-    let { name, phone } = query;
-    let qq = { name, phone };
-    for (const key in query) {
-        if (query[key].trim() == '') {
-            delete qq[key]
-        }
-    }
-    consumer.find(qq, {}, (err, docs) => { //定义查询结果显示字段
-        if (!err) {
-            let jsonArray = [];
-            if (query.keyword.trim() !== '') {
-                docs.forEach((ele) => {
-                    let str = ele.name + '' + ele.phone + '' + ele.comment + '' + ele.principal;
-                    if (!(str.indexOf(query.keyword) === -1)) {
-                        let temp = {
-                            '姓名': ele.name,
-                            '手机号': ele.phone,
-                        }
-                        jsonArray.push(temp)
-                    }
-                })
-            } else {
-                docs.forEach(ele => {
-                    let temp = {
-                        '姓名': ele.name,
-                        '手机号': ele.phone,
-                    }
-                    jsonArray.push(temp)
-                })
-            }
-            let xls = json2xls(jsonArray);
-            let date = (new Date().getMonth() + 1) + '-' + new Date().getDate();
-            fs.writeFileSync('static/excel/user' + date + '.xlsx', xls, 'binary');
-             res.send({ url: 'http://127.0.0.1:1112/' + 'user' + date + '.xlsx' }); // 本地环境
-            // res.send({ url: 'https://suezp.cn/server/' + 'km' + date + '.xlsx' }); //线上环境
-            next();
-        } else {
-            throw err
-        }
-    })
-});
+// router.get('/exportExcel', function(req, res, next) {
+//     let query = req.query
+//     let { name, phone } = query;
+//     let qq = { name, phone };
+//     for (const key in query) {
+//         if (query[key].trim() == '') {
+//             delete qq[key]
+//         }
+//     }
+//     consumer.find(qq, {}, (err, docs) => { //定义查询结果显示字段
+//         if (!err) {
+//             let jsonArray = [];
+//             if (query.keyword.trim() !== '') {
+//                 docs.forEach((ele) => {
+//                     let str = ele.name + '' + ele.phone + '' + ele.comment + '' + ele.principal;
+//                     if (!(str.indexOf(query.keyword) === -1)) {
+//                         let temp = {
+//                             '姓名': ele.name,
+//                             '手机号': ele.phone,
+//                         }
+//                         jsonArray.push(temp)
+//                     }
+//                 })
+//             } else {
+//                 docs.forEach(ele => {
+//                     let temp = {
+//                         '姓名': ele.name,
+//                         '手机号': ele.phone,
+//                     }
+//                     jsonArray.push(temp)
+//                 })
+//             }
+//             let xls = json2xls(jsonArray);
+//             let date = (new Date().getMonth() + 1) + '-' + new Date().getDate();
+//             fs.writeFileSync('static/excel/user' + date + '.xlsx', xls, 'binary');
+//              res.send({ url: 'http://127.0.0.1:1112/' + 'user' + date + '.xlsx' }); // 本地环境
+//             // res.send({ url: 'https://suezp.cn/server/' + 'km' + date + '.xlsx' }); //线上环境
+//             next();
+//         } else {
+//             throw err
+//         }
+//     })
+// });
 
 
 //  POST请求处理

@@ -1,0 +1,52 @@
+{
+  "filename": "我的报表2",
+  "sheetName": "sheet1",
+  "sheetDescript": [],
+  "header": [
+    {
+      "id": "id"
+    },
+    {
+      "name": "名字"
+    },
+    {
+      "email": "电子邮件"
+    },
+    {
+      "addr": "地址"
+    }
+  ],
+  "contentLists": [
+    {
+      "id": "1",
+      "name": "张三",
+      "email": "1@zs.com",
+      "addr": "上海市浦东新区",
+      "rr": "13256"
+    },
+    {
+      "id": "2",
+      "name": "李四",
+      "email": "1@ls.com",
+      "addr": "上海市浦东新区",
+      "rr": "13256"
+    },
+    {
+      "id": "3",
+      "name": "王五",
+      "email": "1@ww.com",
+      "addr": "上海市浦东新区",
+      "rr": "13256"
+    },
+
+    {
+      "id": "3",
+      "name": "赵六",
+      "email": "1@zl.com",
+      "addr": "上海市浦东新区",
+      "rr": "13256"
+    }
+  ]
+
+}
+

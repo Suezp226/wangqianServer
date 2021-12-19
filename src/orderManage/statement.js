@@ -8,6 +8,7 @@ const MD5 = require('md5-node');
 const sms = require("../utils/aliMsg");
 const moment = require("moment");
 const user = require('../user');  // 用户list 用来判别新增用户
+const excel = require('../utils/excel');
 
 // 2、创建 schema
 let Schema = mongoose.Schema;
@@ -104,45 +105,85 @@ router.get('/', function(req, res, next) {
     })
 });
 
+
+function getStatuStr(num) {
+    let str= '';
+    switch(num) {
+        case '0': 
+            str = '待确认';
+        break
+        case '1': 
+            str = '已确认';
+        break
+        case '9': 
+            str = '已作废';
+        break
+        default: 
+            str = '';
+        break
+    }
+
+    return str;
+
+}
+
 // 导出excel
 router.get('/exportExcel', function(req, res, next) {
     let query = req.query
-    let { name, phone } = query;
-    let qq = { name, phone };
+        // pages->  page,pageNum,total
+        // query-> name phone date keyword
+    let { orderStat, keyword, orderNo } = query;
+    let qq = { orderStat, keyword, orderNo};
+    qq.ywyName = query.ywyName?query.ywyName:'';
+    qq.makerName = query.makerName?query.makerName:'';
     for (const key in query) {
         if (query[key].trim() == '') {
             delete qq[key]
         }
     }
+
     consumer.find(qq, {}, (err, docs) => { //定义查询结果显示字段
         if (!err) {
-            let jsonArray = [];
-            if (query.keyword.trim() !== '') {
+            let list = [];
+
+            if (query.keyword && query.keyword.trim() !== '') {  // 存在关键字
                 docs.forEach((ele) => {
-                    let str = ele.name + '' + ele.phone + '' + ele.comment + '' + ele.principal;
+                    let str = ele.name + '' + ele.orderNo + ''+ ele.checkName + ele.checkPhone + ele.checkIdNum +
+                         ele.ywyName + ele.ywyPhone + ele.makerName + ele.makerPhone + ele.finaceName + ele.finacePhone;
+
                     if (!(str.indexOf(query.keyword) === -1)) {
-                        let temp = {
-                            '姓名': ele.name,
-                            '手机号': ele.phone,
-                        }
-                        jsonArray.push(temp)
+                        let temp = {...ele};
+                        temp.orderStat = getStatuStr(temp.orderStat);
+                        list.unshift(temp); //倒序
                     }
                 })
             } else {
-                docs.forEach(ele => {
-                    let temp = {
-                        '姓名': ele.name,
-                        '手机号': ele.phone,
-                    }
-                    jsonArray.push(temp)
+                list = docs.reverse();
+                list.forEach((ele,ind)=>{
+                    list[ind].orderStat = getStatuStr(ele.orderStat)
                 })
             }
-            let xls = json2xls(jsonArray);
+
             let date = (new Date().getMonth() + 1) + '-' + new Date().getDate();
-            fs.writeFileSync('static/excel/user' + date + '.xlsx', xls, 'binary');
-             res.send({ url: 'http://127.0.0.1:1112/' + 'user' + date + '.xlsx' }); // 本地环境
-            // res.send({ url: 'https://suezp.cn/server/' + 'km' + date + '.xlsx' }); //线上环境
-            next();
+            let header = [
+                {'makeTime':'制单时间'},
+                {'orderNo':'订单号'},
+                {'orderStat':'状态'},
+                {'company':'客户单位'},
+                {'checkName':'对账人'},
+                {'checkPhone':'对账人电话'},
+                {'checkIdNum':'对账人身份证'},
+                {'ywyName':'业务员'},
+                {'ywyPhone':'电话'},
+                {'makerName':'制单员'},
+                {'makerPhone':'电话'}
+            ]
+            
+            //  参数 路excel 下的路径 + 文件名； sheet名称； 描述信息（暂时无用）； 表头； 表数据
+            let filename = excel.createReportFile('/statement' + date,'sheet1',[],header,list);
+
+            res.send({ url: 'https://shwq.mobile.xqzbk.top/api/' + filename + '.xlsx' }); // 线上环境
+            // res.send({ url: 'http://localhost:1115/' + 'dispatch' + date + '.xlsx' }); // 本地环境
         } else {
             throw err
         }
