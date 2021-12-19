@@ -9,6 +9,7 @@ const sms = require("../utils/aliMsg");
 const moment = require("moment");
 const user = require('../user');  // 用户list 用来判别新增用户
 const excel = require('../utils/excel');
+const log = require('../log');
 
 // 2、创建 schema
 let Schema = mongoose.Schema;
@@ -340,6 +341,22 @@ router.post('/deleteOrder', function(req, res, next) {
             console.log(err);
             return;
         }
+        // 打印日志
+        let newLog = {
+            name: '',
+            phone: '',
+            idNum: '',
+            time: moment().format('YYYY年MM月DD日 HH:mm'),
+            doneStr: '删除订货单',
+            platform: 'web后台',
+        }
+        log.consumer.create([newLog], (err) => {
+            if (!err) {
+                console.log('日志新增成功')
+            } else {
+                throw err;
+            }
+        })
         consumer.find({ _id: query._id }, {}, (err, docs) => {
             res.send({ docs, code: 200 })
             
@@ -379,7 +396,22 @@ router.post('/addOrder', function(req, res, next) {
                     judgeUser('ywy',ywyName,ywyPhone,'','');
                     judgeUser('',bookName,bookPhone,bookIdNum,company);
 
-
+                    // 打印日志
+                    let newLog = {
+                        name: query.makerName,
+                        phone: query.makerPhone,
+                        idNum: '',
+                        time: moment().format('YYYY年MM月DD日 HH:mm'),
+                        doneStr: '新增订货单',
+                        platform: 'web后台',
+                    }
+                    log.consumer.create([newLog], (err) => {
+                        if (!err) {
+                            console.log('日志新增成功')
+                        } else {
+                            throw err;
+                        }
+                    })
 
                     consumer.find({...query }, {}, (err, docs) => {
                         res.send({ docs, code: 200, msg:'新增成功' })
