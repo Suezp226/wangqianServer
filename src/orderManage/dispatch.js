@@ -319,7 +319,7 @@ router.post('/editOrder', function(req, res, next) {
                 console.log(ex)
             });
             // 发送给 结算人（本人） 不用传运费
-            sms.send(query.payPhone,'SMS_230010502',{...smsParam,deliveryName,deliveryPhone}).then((result) => {
+            sms.send(query.payPhone,'SMS_230641609',{...smsParam,deliveryName,deliveryPhone}).then((result) => {
                 console.log("短信发送成功-结算人")
                 console.log(result)
             }, (ex) => {
@@ -593,7 +593,7 @@ router.post('/addOrder', function(req, res, next) {
                     }
 
                     // 发送给 司机
-                    sms.send(query.deliveryPhone,'SMS_230010510',smsParam).then((result) => {
+                    sms.send(query.deliveryPhone,'SMS_230656484',smsParam).then((result) => {
                         console.log("短信发送成功")
                         console.log(result)
                     }, (ex) => {

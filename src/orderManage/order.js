@@ -382,7 +382,7 @@ router.post('/addOrder', function(req, res, next) {
                 if (!err) {
                     let {company,orderNo} = query;
                     // 发送给 订货人
-                    sms.send(query.bookPhone,'SMS_230010505',{company,orderNo}).then((result) => {
+                    sms.send(query.bookPhone,'SMS_230661526',{company,orderNo}).then((result) => {
                         console.log("短信发送成功")
                         console.log(result)
                     }, (ex) => {

@@ -365,7 +365,7 @@ router.post('/addOrder', function(req, res, next) {
 
 
                     // 发送给 对账人
-                    sms.send(query.checkPhone,'SMS_230010501',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
+                    sms.send(query.checkPhone,'SMS_230676438',{company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone}).then((result) => {
                         console.log("短信发送成功")
                         console.log(result)
                     }, (ex) => {
