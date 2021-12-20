@@ -9,6 +9,7 @@ const sms = require("../utils/aliMsg");
 const moment = require("moment");
 const user = require('../user');  // 用户list 用来判别新增用户
 const excel = require('../utils/excel');
+const log = require('../log');
 
 // 2、创建 schema
 let Schema = mongoose.Schema;
@@ -211,9 +212,45 @@ router.post('/editOrder', function(req, res, next) {
         }
         if(query.orderStat == '9') {
             console.log('作废')
+             // 打印日志
+            let newLog = {
+                orderNo: query.orderNo,
+                name: query.makerName,
+                phone: query.makerPhone,
+                idNum: query.makerIdNum,
+                time: moment().format('YYYY年MM月DD日 HH:mm'),
+                doneStr: '作废对账单',
+                platform: 'web后台',
+                location: '',
+            }
+            log.consumer.create([newLog], (err) => {
+                if (!err) {
+                    console.log('日志新增成功')
+                } else {
+                    throw err;
+                }
+            })
         }
     
         if(query.orderStat == '1') {
+             // 打印日志
+            let newLog = {
+                orderNo: query.orderNo,
+                name: query.checkName,
+                phone: query.checkPhone,
+                idNum: query.checkIdNum,
+                time: moment().format('YYYY年MM月DD日 HH:mm'),
+                doneStr: '确认对账单',
+                platform: query.deviceInfo,
+                location: query.location,
+            }
+            log.consumer.create([newLog], (err) => {
+                if (!err) {
+                    console.log('日志新增成功')
+                } else {
+                    throw err;
+                }
+            })
             console.log('确认对账单')
             let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone} = query;
             // 发送给 对账人
@@ -251,6 +288,24 @@ router.post('/deleteOrder', function(req, res, next) {
             console.log(err);
             return;
         }
+        // 打印日志
+        let newLog = {
+            orderNo: query._id,
+            name: '',
+            phone: '',
+            idNum: '',
+            time: moment().format('YYYY年MM月DD日 HH:mm'),
+            doneStr: '删除对账单',
+            platform: 'web后台',
+            location: '',
+        }
+        log.consumer.create([newLog], (err) => {
+            if (!err) {
+                console.log('日志新增成功')
+            } else {
+                throw err;
+            }
+        })
         consumer.find({ _id: query._id }, {}, (err, docs) => {
             res.send({ docs, code: 200 })
             
@@ -356,6 +411,25 @@ router.post('/addOrder', function(req, res, next) {
                 if (!err) {
                     console.log('添加成功')
                     let {company,timePeriod,finaceName,finacePhone,ywyName,ywyPhone,checkName,checkPhone,checkIdNum} = query;
+
+                     // 打印日志
+                    let newLog = {
+                        orderNo: query.orderNo,
+                        name: query.makerName,
+                        phone: query.makerPhone,
+                        idNum: query.makerIdNum,
+                        time: moment().format('YYYY年MM月DD日 HH:mm'),
+                        doneStr: '新增对账单',
+                        platform: 'web后台',
+                        location: '',
+                    }
+                    log.consumer.create([newLog], (err) => {
+                        if (!err) {
+                            console.log('日志新增成功')
+                        } else {
+                            throw err;
+                        }
+                    })
 
 
                     // 用户信息判断

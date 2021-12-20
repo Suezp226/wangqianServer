@@ -9,6 +9,7 @@ const sms = require("../utils/aliMsg");
 const moment = require("moment");
 const user = require('../user');  // 用户list 用来判别新增用户
 const excel = require('../utils/excel');
+const log = require('../log');
 
 // 2、创建 schema
 let Schema = mongoose.Schema;
@@ -252,11 +253,29 @@ router.post('/editOrder', function(req, res, next) {
         // 订单状态 0-待启运  1-运输中  2-无异议签收   3-有异议签收   4-二次签收(无异议)  9-作废
         let {bootUpTime,carNum,company,orderNo,goodsPrice,destination,deliveryFeeType,deliveryFee,
                 liveName,livePhone,deliveryName,deliveryPhone,signTime,signTime2,changeName,changePhone,changeIdNum,
-                ywyName,ywyPhone,makerName,makerPhone,problem,payName,payPhone} = query;
+                ywyName,ywyPhone,makerName,makerPhone,problem,payName,payPhone,payIdNum} = query;
 
          // 要判断下是否有变更收货人
         if(query.orderStat == '1' && query.changeName) {   // 判定为 变更收货人
             console.log('变更收货人')
+             // 打印日志
+             let newLog = {
+                orderNo: orderNo,
+                name: payName,
+                phone: payPhone,
+                idNum: payIdNum,
+                time: moment().format('YYYY年MM月DD日 HH:mm'),
+                doneStr: '变更收货人',
+                platform: '',
+                location: '',
+            }
+            log.consumer.create([newLog], (err) => {
+                if (!err) {
+                    console.log('日志新增成功')
+                } else {
+                    throw err;
+                }
+            })
 
             // 新增用户
             user.consumer.find({ phone: changePhone }, {}, (err, docs) => {
@@ -335,6 +354,25 @@ router.post('/editOrder', function(req, res, next) {
                 console.log("短信发送失败")
                 console.log(ex)
             });
+
+             // 打印日志
+             let newLog = {
+                orderNo: orderNo,
+                name: deliveryName,
+                phone: deliveryPhone,
+                idNum: query.deliveryIdNum,
+                time: moment().format('YYYY年MM月DD日 HH:mm'),
+                doneStr: '司机启运货物',
+                platform: query.BdeviceInfo,
+                location: query.Blocation,
+            }
+            log.consumer.create([newLog], (err) => {
+                if (!err) {
+                    console.log('日志新增成功')
+                } else {
+                    throw err;
+                }
+            })
         }
     
         if(query.orderStat == '2' || query.orderStat == '4') {  // 签收操作 无异议   通知结算人、司机、业务员、内勤
@@ -387,6 +425,26 @@ router.post('/editOrder', function(req, res, next) {
                 console.log(ex)
             });
             console.log('确认订单')
+
+             // 打印日志
+             let newLog = {
+                orderNo: orderNo,
+                name: changeName?changeName:payName,
+                phone: changePhone?changePhone:payPhone,
+                idNum: changeIdNum?changeIdNum:payIdNum,
+                time: moment().format('YYYY年MM月DD日 HH:mm'),
+                doneStr: '确认签收',
+                platform: query.SdeviceInfo,
+                location: query.Slocation,
+            }
+            log.consumer.create([newLog], (err) => {
+                if (!err) {
+                    console.log('日志新增成功')
+                } else {
+                    throw err;
+                }
+            })
+
         }
 
         if(query.orderStat == '3') {  // 签收操作 有异议
@@ -448,6 +506,24 @@ router.post('/editOrder', function(req, res, next) {
                 console.log(ex)
             });
             console.log('确认订单')
+            // 打印日志
+            let newLog = {
+                orderNo: orderNo,
+                name: changeName?changeName:payName,
+                phone: changePhone?changePhone:payPhone,
+                idNum: changeIdNum?changeIdNum:payIdNum,
+                time: moment().format('YYYY年MM月DD日 HH:mm'),
+                doneStr: '确认签收(有异议)',
+                platform: query.SdeviceInfo,
+                location: query.Slocation,
+            }
+            log.consumer.create([newLog], (err) => {
+                if (!err) {
+                    console.log('日志新增成功')
+                } else {
+                    throw err;
+                }
+            })
         }
 
         console.log('成功', resp)
@@ -600,6 +676,27 @@ router.post('/addOrder', function(req, res, next) {
                         console.log("短信发送失败")
                         console.log(ex)
                     });
+
+
+                    // 打印日志
+                    let newLog = {
+                        orderNo: query.orderNo,
+                        name: query.makerName,
+                        phone: query.makerPhone,
+                        idNum: query.makerIdNum,
+                        time: moment().format('YYYY年MM月DD日 HH:mm'),
+                        doneStr: '新增发货单',
+                        platform: 'web后台',
+                        location: '',
+                    }
+                    log.consumer.create([newLog], (err) => {
+                        if (!err) {
+                            console.log('日志新增成功')
+                        } else {
+                            throw err;
+                        }
+                    })
+
                     consumer.find({...query }, {}, (err, docs) => {
                         res.send({ docs, code: 200 })
                         return

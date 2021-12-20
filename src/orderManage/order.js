@@ -241,10 +241,45 @@ router.post('/editOrder', function(req, res, next) {
                     console.log("短信发送失败")
                     console.log(ex)
                 });
+                // 打印日志
+                let newLog = {
+                    orderNo: query.orderNo,
+                    name: query.bookName,
+                    phone: query.bookPhone,
+                    idNum: query.bookIdNum,
+                    time: moment().format('YYYY年MM月DD日 HH:mm'),
+                    doneStr: '确认订货单',
+                    platform: query.deviceInfo,
+                    location: query.location,
+                }
+                log.consumer.create([newLog], (err) => {
+                    if (!err) {
+                        console.log('日志新增成功')
+                    } else {
+                        throw err;
+                    }
+                })
             }
     
             if(query.orderStat == '9') {  //
-                
+                // 打印日志
+                let newLog = {
+                    orderNo: query.orderNo,
+                    name: query.makerName,
+                    phone: query.makerPhone,
+                    idNum: query.makerIdNum,
+                    time: moment().format('YYYY年MM月DD日 HH:mm'),
+                    doneStr: '作废订货单',
+                    platform: 'web后台',
+                    location: '',
+                }
+                log.consumer.create([newLog], (err) => {
+                    if (!err) {
+                        console.log('日志新增成功')
+                    } else {
+                        throw err;
+                    }
+                })
             }
             res.send({ docs, code: 200 })
             next();
@@ -346,12 +381,14 @@ router.post('/deleteOrder', function(req, res, next) {
         }
         // 打印日志
         let newLog = {
+            orderNo: query._id,
             name: '',
             phone: '',
             idNum: '',
             time: moment().format('YYYY年MM月DD日 HH:mm'),
             doneStr: '删除订货单',
             platform: 'web后台',
+            location: '',
         }
         log.consumer.create([newLog], (err) => {
             if (!err) {
@@ -401,12 +438,14 @@ router.post('/addOrder', function(req, res, next) {
 
                     // 打印日志
                     let newLog = {
+                        orderNo: query.orderNo,
                         name: query.makerName,
                         phone: query.makerPhone,
                         idNum: '',
                         time: moment().format('YYYY年MM月DD日 HH:mm'),
                         doneStr: '新增订货单',
                         platform: 'web后台',
+                        location: '',
                     }
                     log.consumer.create([newLog], (err) => {
                         if (!err) {

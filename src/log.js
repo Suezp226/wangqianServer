@@ -9,12 +9,14 @@ const moment = require("moment");
 // 2、创建 schema
 let Schema = mongoose.Schema;
 let consumerInfo = new Schema({
+    orderNo: String,  //订单号
     name: String,
     phone: String, 
     idNum: String,
     time: String,
     doneStr: String,
     platform: String,
+    location: String,
 });
 
 // 3、 创建Model 对象  对接表名称
