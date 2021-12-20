@@ -26,8 +26,8 @@ let consumer = mongoose.model("log", consumerInfo)
 // 查询日志
 router.get('/', function(req, res, next) {
     let query = req.query
-    let { time } = query;
-    let qq = { time};
+    let { keyword } = query;
+    let qq = {};
 
     for (const key in query) {
         if (query[key].trim() == '') {
@@ -42,8 +42,22 @@ router.get('/', function(req, res, next) {
                 pageNum: query.pageNum,
                 total: docs.length
             }
+
+            console.log(docs,'查到的数组')
+
             let list = [];
-            list = docs.reverse();
+
+            if (query.keyword && query.keyword.trim() !== '') {  // 存在关键字
+                docs.forEach((ele) => {
+                    let str = ele.time + '' + ele.name + ''+ ele.orderNo + '' + ele.phone + '' + ele.doStr + '' + ele.idNum;
+                    if (!(str.indexOf(query.keyword) == -1)) {
+                        list.unshift(ele); //倒序
+                    }
+                })
+            } else {
+                list = docs.reverse();
+            }
+
             list = list.splice((query.page - 1) * query.pageNum, query.pageNum);
             res.send({ code:200,list, pages })
             next();

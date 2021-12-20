@@ -14,6 +14,7 @@ const user = require('./src/user');
 const order = require('./src/orderManage/order');
 const statement = require('./src/orderManage/statement');
 const dispatch = require('./src/orderManage/dispatch');
+const Log = require('./src/log');
 
 
 
@@ -45,6 +46,7 @@ app.use('/user',user.router);   // 处理用户
 app.use('/orderForm',order.router);   // 处理订货单
 app.use('/statementForm',statement.router);   // 处理订货单
 app.use('/dispatchForm',dispatch.router);   // 处理发货单
+app.use('/Log',Log.router);   // 处理日志
 
 
 
