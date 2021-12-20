@@ -263,7 +263,7 @@ router.post('/addUser', function(req, res, next) {
                 {"muaId":6,"roleCode":"admin","menuCode":"role","menuUrl":"9","authType":"menu","buttonCode":null,"menuName":"基础档案","menuIcon":"el-icon-lx-people","parentId":"","path":"9","title":"基础档案","icon":"el-icon-lx-people",
                 "subs":[{"muaId":7,"roleCode":"admin","menuCode":"customerManage","menuUrl":"/customerManage","authType":"menu","buttonCode":null,"menuName":"客户","menuIcon":null,"parentId":"role","path":"/customerManage","title":"客户","icon":"","subs":null},
                 {"muaId":8,"roleCode":"admin","menuCode":"workerManage","menuUrl":"/workerManage","authType":"menu","buttonCode":null,"menuName":"员工","menuIcon":null,"parentId":"role","path":"/workerManage","title":"员工","icon":"","subs":null}]},
-                {"muaId":9,"roleCode":"admin","menuCode":"system","menuUrl":"/i18n","authType":"menu","buttonCode":null,"menuName":"系统设置","menuIcon":"el-icon-lx-global","parentId":"","path":"/i18n","title":"系统设置","icon":"el-icon-lx-global","subs":null}]);
+                {"muaId":9,"roleCode":"admin","menuCode":"system","menuUrl":"/i18n","authType":"menu","buttonCode":null,"menuName":"系统日志","menuIcon":"el-icon-lx-global","parentId":"","path":"/i18n","title":"系统日志","icon":"el-icon-lx-global","subs":null}]);
             }  
             if(['ywy'].includes(newUser.userType)) {
                 newUser.password = '123456';
