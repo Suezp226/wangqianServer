@@ -255,7 +255,7 @@ router.post('/editOrder', function(req, res, next) {
                 liveName,livePhone,deliveryName,deliveryPhone,signTime,signTime2,changeName,changePhone,changeIdNum,
                 ywyName,ywyPhone,makerName,makerPhone,problem,payName,payPhone,payIdNum} = query;
 
-         // 要判断下是否有变更收货人
+         // 要判断下是否有变更收货人  运输中状态变更收货人
         if(query.orderStat == '1' && query.changeName) {   // 判定为 变更收货人
             console.log('变更收货人')
              // 打印日志
@@ -296,19 +296,21 @@ router.post('/editOrder', function(req, res, next) {
                         menuList: '',
                         mark: '',
                     }
-
+                    
                     user.consumer.create([newUser], (err) => {
                         if (!err) {
                             console.log('添加成功')
-                            res.send({ code: 200,msg: '变更成功' })
+
+                            let nowTime = moment().format('YYYY年MM月DD日 HH:mm');
                             // 发送给 新收货人
-                            sms.send(query.deliveryPhone,'SMS_230240202',{changeName,payName}).then((result) => {
+                            sms.send(query.changePhone,'SMS_231200442',{changeName,nowTime,carNum,orderNo,goodsPrice,deliveryName,deliveryPhone,payName}).then((result) => {
                                 console.log("短信发送成功-司机")
                                 console.log(result)
                             }, (ex) => {
                                 console.log("短信发送失败")
                                 console.log(ex)
                             });
+                            res.send({ code: 200,msg: '变更成功' })
                         } else {
                             throw err;
                         }
@@ -316,7 +318,8 @@ router.post('/editOrder', function(req, res, next) {
                     return
                 } else {
                     // 发送给 新收货人
-                    sms.send(query.deliveryPhone,'SMS_230240202',{changeName,payName}).then((result) => {
+                    let nowTime = moment().format('YYYY年MM月DD日 HH:mm');
+                    sms.send(query.changePhone,'SMS_231200442',{changeName,nowTime,carNum,orderNo,goodsPrice,deliveryName,deliveryPhone,payName}).then((result) => {
                         console.log("短信发送成功-司机")
                         console.log(result)
                     }, (ex) => {
