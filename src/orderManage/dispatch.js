@@ -315,6 +315,14 @@ router.post('/editOrder', function(req, res, next) {
                     })
                     return
                 } else {
+                    // 发送给 新收货人
+                    sms.send(query.deliveryPhone,'SMS_230240202',{changeName,payName}).then((result) => {
+                        console.log("短信发送成功-司机")
+                        console.log(result)
+                    }, (ex) => {
+                        console.log("短信发送失败")
+                        console.log(ex)
+                    });
                     res.send({ code: 200,msg: '变更成功' })
                 }
         
