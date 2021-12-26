@@ -7,6 +7,21 @@ const app = express();
 const sms = require('./src/utils/aliMsg');
 const MD5 = require('md5-node');
 const moment = require("moment");
+const axios = require('axios');
+const qs = require('qs');
+
+const judgeIdentity = function() {
+    let param = {
+        "grant_type": 'client_credentials', 
+        "client_id": 'tImTfCkl7UmYhU6Wv4Zzghv4',
+        "client_secret": 'aNEyU626GgYt8vc2Aip2TGEy4eKE8GC9'
+    };
+    let queryStr = qs.stringify(param);
+    axios.get("https://aip.baidubce.com/oauth/2.0/token?"+queryStr).then(res=>{
+        console.log(res.data,'获取sccesstoken')
+    });
+}
+
 
 // 导入路由模块
 const upload = require('./src/upload');
@@ -58,6 +73,33 @@ function MathRand() {
     }
     return Num;
 }
+
+// 获取accessToken
+app.use('/getAcToken', (req, resp) => {
+    let param = {
+        "grant_type": 'client_credentials', 
+        "client_id": 'tImTfCkl7UmYhU6Wv4Zzghv4',
+        "client_secret": 'aNEyU626GgYt8vc2Aip2TGEy4eKE8GC9'
+    };
+    let queryStr = qs.stringify(param);
+    axios.get("https://aip.baidubce.com/oauth/2.0/token?"+queryStr).then(res=>{
+        if(res.data.access_token) {
+            console.log(res.data,'获取sccesstoken成功')
+            resp.send({
+                code: 200,
+                access_token: res.data.access_token
+            })
+        } else {
+            console.log(res.data,'获取sccesstoken失败')
+            resp.send({
+                code: 500,
+                msg: 'accessToken 获取失败'     
+            })
+        }
+    });
+})
+
+
 
 // 获取验证码 
 app.get('/getCode',function(req,res,next){
