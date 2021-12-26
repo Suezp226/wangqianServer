@@ -227,6 +227,28 @@ router.post('/editUser', function(req, res, next) {
     })
 })
 
+// 添加用户身份证号
+
+router.post('/addUserIdNum', function(req, res, next) {
+    console.log(req.body);
+    let query = req.body;
+    consumer.find({ phone: query.phone }, {}, (err, docs) => {
+
+        let param = docs[0];
+  
+        param.idNumber = query.idNum + '';
+        console.log(param,'更新传参')
+        consumer.updateOne({ _id: param._id }, param, function(err, resp) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            res.send({ msg:'添加成功', code: 200 })
+            console.log('成功', resp)
+        })
+    })
+})
+
 // 删除用户
 router.post('/deleteUser', function(req, res, next) {
     console.log(req.body);

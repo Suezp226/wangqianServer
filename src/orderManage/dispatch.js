@@ -462,7 +462,7 @@ router.post('/editOrder', function(req, res, next) {
 
             let smsParam3 = {
                 company,problem,
-                nowDate: query.orderStat == '2'?signTime:signTime2,
+                nowDate: moment().format('YYYY年MM月DD日 HH:mm'),
                 carNum,orderNo,goodsPrice,destination,makerName,makerPhone,ywyName,ywyPhone
             }
             // 发送给 结算人（本人）
@@ -476,7 +476,7 @@ router.post('/editOrder', function(req, res, next) {
 
             let baseSmsParam = {
                 company, carNum, orderNo,goodsPrice,destination,problem,
-                signTime: query.orderStat == '2'?signTime:signTime2,
+                signTime: moment().format('YYYY年MM月DD日 HH:mm'),
             }
 
             // signStr 根据接受短信人变化
