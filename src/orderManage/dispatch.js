@@ -303,7 +303,7 @@ router.post('/editOrder', function(req, res, next) {
 
                             let nowTime = moment().format('YYYY年MM月DD日 HH:mm');
                             // 发送给 新收货人
-                            sms.send(changePhone,'SMS_231215573',{company,nowTime,carNum,orderNo,goodsPrice,deliveryName,deliveryPhone,payName}).then((result) => {
+                            sms.send(changePhone,'SMS_231441708',{company,nowTime,carNum,orderNo,goodsPrice,deliveryName,deliveryPhone,payName,ywyName,ywyPhone}).then((result) => {
                                 console.log("短信发送成功-变更人")
                                 console.log(result)
                             }, (ex) => {
@@ -319,7 +319,7 @@ router.post('/editOrder', function(req, res, next) {
                 } else {
                     // 发送给 新收货人
                     let nowTime = moment().format('YYYY年MM月DD日 HH:mm');
-                    sms.send(changePhone,'SMS_231215573',{company,nowTime,carNum,orderNo,goodsPrice,deliveryName,deliveryPhone,payName}).then((result) => {
+                    sms.send(changePhone,'SMS_231441708',{company,nowTime,carNum,orderNo,goodsPrice,deliveryName,deliveryPhone,payName,ywyName,ywyPhone}).then((result) => {
                         console.log("短信发送成功-变更人")
                         console.log(result)
                     }, (ex) => {
@@ -349,7 +349,7 @@ router.post('/editOrder', function(req, res, next) {
                 console.log(ex)
             });
             // 发送给 结算人（本人） 不用传运费
-            sms.send(query.payPhone,'SMS_230641609',{...smsParam,deliveryName,deliveryPhone}).then((result) => {
+            sms.send(query.payPhone,'SMS_231436726',{...smsParam,deliveryName,deliveryPhone,ywyName,ywyPhone}).then((result) => {
                 console.log("短信发送成功-结算人")
                 console.log(result)
             }, (ex) => {
